@@ -1,38 +1,58 @@
+#' GET PurpleAir Sensor Data
+#'
+#' @param sensors_df A dataframe with PurpleAir sensor info
+#' @param fields A character vector of api fields to return
+#' @param api_read_key A valid character PurpleAir api read key
+#' inheritParams
+#'
+#' @returns A dataframe with field values
+#' @export
+#'
+#' @examples
+#' sensors <- data.frame(
+#'   sensor_index = 122948,
+#'   MAC_SN = "00:00:00:00:00:00",
+#'   Name = "PurpleSensor-0089",
+#'   read_key = "28qhig4ghqh290qt"
+#' )
+#' fields_vector <- c("name", "uptime")
+#' api_read <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
+#' get_sensor_data(sensors, fields_vector, api_read)
 get_sensor_data <- function(sensors_df, fields, api_read_key) {
   # Run datatype checks -------------------------------------------------------
   break_bool <- FALSE
   if (!is.data.frame(sensors_df)) {
-    cli_alert_danger("Incompatible type: sensors_df is not a dataframe")
+    cli::cli_alert_danger("Incompatible type: sensors_df is not a dataframe")
     break_bool <- TRUE
   }
   if (!is.vector(fields)) {
-    cli_alert_danger("Incompatible type: fields is not a vector")
+    cli::cli_alert_danger("Incompatible type: fields is not a vector")
     break_bool <- TRUE
   }
   if (!is.character(fields)) {
-    cli_alert_danger("Incompatible type: fields is not a character")
+    cli::cli_alert_danger("Incompatible type: fields is not a character")
     break_bool <- TRUE
   }
   if (!is.character(api_read_key)) {
-    cli_alert_danger("Incompatible type: api_read_key is not a character")
+    cli::cli_alert_danger("Incompatible type: api_read_key is not a character")
     break_bool <- TRUE
   }
-  if (break_bool == TRUE) break
+  if (break_bool == TRUE) stop()
   # Get point total before download
-  org_start <- GET(
+  org_start <- httr::GET(
     "https://api.purpleair.com/v1/organization",
-    add_headers("X-API-Key" = api_read_key)
+    httr::add_headers("X-API-Key" = api_read_key)
   ) |>
-    content(as = "parsed")
+    httr::content(as = "parsed")
   # Start message
   sprintf(
     "Downloading Latest Data from %.0f PurpleAir Sensors",
     nrow(sensors_df)
-  ) |> cli_alert_info()
+  ) |> cli::cli_alert_info()
   # Initialize progress bar with first sensor index
   sensor_id <- sensors_df$sensor_index[1]
   sensor_name <- sensors_df$Name[1]
-  cli_progress_bar(
+  cli::cli_progress_bar(
     total = nrow(sensors_df),
     format = paste0(
       "Sensor \"{sensor_name}\" SID{sensor_id} [{pb_current}/{pb_total}] ",
@@ -49,7 +69,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
     sensor_key <- sensors_df$read_key[i]
     # Check for missing sensor index for given mac
     if (is.na(sensor_id)) {
-      cli_alert_info(
+      cli::cli_alert_info(
         sprintf(
           paste(
             "No data id for MAC: %s, \"%s\"",
@@ -60,12 +80,12 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
           sensor_name
         )
       )
-      cli_progress_update()
+      cli::cli_progress_update()
       next
     }
     # Check for missing read_key
     if (!is.na(sensor_key)) {
-      data_request <- GET(
+      data_request <- httr::GET(
         sub(
           ":sensor_index", sensor_id,
           "https://api.purpleair.com/v1/sensors/:sensor_index"
@@ -74,10 +94,10 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
           read_key = sensor_key,
           fields = paste(fields, collapse = ",")
         ),
-        add_headers("X-API-Key" = api_read_key)
+        httr::add_headers("X-API-Key" = api_read_key)
       )
     } else {
-      data_request <- GET(
+      data_request <- httr::GET(
         sub(
           ":sensor_index", sensor_id,
           "https://api.purpleair.com/v1/sensors/:sensor_index"
@@ -85,24 +105,24 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
         query = list(
           fields = paste(fields, collapse = ",")
         ),
-        add_headers("X-API-Key" = api_read_key)
+        httr::add_headers("X-API-Key" = api_read_key)
       )
     }
     # Start time to avoid exceeding request rate limit
     benchmark_start <- Sys.time()
     # Parse request returned content
-    data <- content(data_request, as = "parsed")
+    data <- httr::content(data_request, as = "parsed")
     if (data_request$status_code == 200) {
       # Data Parse Success Message!
       sprintf(
         "Data Request Success for SID%.0f: %s!",
         data$sensor$sensor_index,
-        if_else(
+        dplyr::if_else(
           !is.null(data$sensor$name),
           data$sensor$name,
           NA_character_
         )
-      ) |> cli_alert_success()
+      ) |> cli::cli_alert_success()
     } else if (data_request$status_code != 200) {
       # Data Parse Failure Message :(
       sprintf(
@@ -115,16 +135,18 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
         data_request$status_code,
         data$error,
         data$description
-      ) |> cli_alert_info()
-      cli_progress_update()
+      ) |> cli::cli_alert_info()
+      cli::cli_progress_update()
       next
     }
     # Create dataframe from parse list
     data_df <- data.frame(data$sensor) |>
-      mutate(
+      dplyr::mutate(
         MAC_SN = sensor_mac,
-        across(
-          any_of(contains(c("last", "date"))),
+        dplyr::across(
+          c("last", "date") |>
+            dplyr::contains() |>
+            dplyr::any_of(),
           ~ as_datetime(.x) |> date()
         )
       )
@@ -132,11 +154,11 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
     pa_sensor_data <- if (is.null(pa_sensor_data)) {
       data_df
     } else {
-      full_join(pa_sensor_data, data_df)
+      dplyr::full_join(pa_sensor_data, data_df)
     }
     # Suspend execution for appropriate time to avoid exceeding
     # API request's rate limit
-    cli_progress_update()
+    cli::cli_progress_update()
     execution_time <- difftime(
       Sys.time(),
       benchmark_start,
@@ -148,14 +170,14 @@ get_sensor_data <- function(sensors_df, fields, api_read_key) {
     }
   }
   # Get point total after download
-  org_end <- GET(
+  org_end <- httr::GET(
     "https://api.purpleair.com/v1/organization",
-    add_headers("X-API-Key" = api_read_key)
+    httr::add_headers("X-API-Key" = api_read_key)
   ) |>
-    content(as = "parsed")
+    httr::content(as = "parsed")
   # Output point usage report
   cat("\n\n\n")
-  cli_alert_info(
+  cli::cli_alert_info(
     sprintf(
       paste(
         "POINT CONSUMPTION REPORT",
