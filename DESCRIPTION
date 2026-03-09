@@ -20,3 +20,5 @@ Imports:
     cli,
     dplyr,
     httr
+URL: https://github.com/tarias7274/saair
+BugReports: https://github.com/tarias7274/saair/issues
