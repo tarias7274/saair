@@ -12,7 +12,7 @@ Description: Helps with tasks common to coding for Dr. Brown & Dr. Lopez-Ochoa
     heat and air quality research and community partnership activities. Includes
     several functions sourced from Stack Overflow as well as many longer
     original works.
-License: MIT + file LICENSE
+License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
