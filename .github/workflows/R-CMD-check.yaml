@@ -28,6 +28,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      SAAIR_KEY: ${{ secrets.SAAIR_KEY }}
 
     steps:
       - uses: actions/checkout@v4
