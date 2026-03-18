@@ -2,13 +2,16 @@ Package: saair
 Title: Useful code for Dr. Brown Air Quality lab at UTSA
 Version: 0.0.0.9000
 Authors@R: 
-    person(
+  person(
     "Tristan", "Arias",
     email = "tristan.arias@utsa.edu",
     role = c("aut", "cre"),
     comment = c(ORCID = "0009-0002-3329-9216")
   )
-Description: Helps with tasks common to coding for Dr. Brown & Dr. Lopez-Ochoa heat and air quality research and community partnership activities. Includes several functions sourced from Stack Overflow as well as many longer original works.
+Description: Helps with tasks common to coding for Dr. Brown & Dr. Lopez-Ochoa
+    heat and air quality research and community partnership activities. Includes
+    several functions sourced from Stack Overflow as well as many longer
+    original works.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
