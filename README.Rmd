@@ -1,0 +1,55 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# saair
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of saair (San Antonio Air) is to assist scientists and engineers in the Dr. Brown, Dr. Lopez-Ochoa, and related labs with expediently and effectively studying heat and air quality in the City of San Antonio, Texas. Formatting help code as a function enables more robust and easy-to-maintain documentation and easy import into any code file of any project without having to maintain disparate definitions within several scripts or definitions across repositories or directories with inconsistent access.
+
+## Installation
+
+You can install the development version of saair from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("tarias7274/saair")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(saair)
+## basic example code
+```
+
+What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+
+```{r cars}
+summary(cars)
+```
+
+You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+
+You can also embed plots, for example:
+
+```{r pressure, echo = FALSE}
+plot(pressure)
+```
+
+In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
