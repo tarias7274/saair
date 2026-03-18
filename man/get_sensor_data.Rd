@@ -2,25 +2,34 @@
 % Please edit documentation in R/get_sensor_data.R
 \name{get_sensor_data}
 \alias{get_sensor_data}
-\title{GET PurpleAir Sensor Data}
+\title{GET latest PurpleAir sensor data}
 \usage{
 get_sensor_data(sensors_df, fields, api_read_key)
 }
 \arguments{
-\item{sensors_df}{A dataframe with PurpleAir sensor info}
+\item{sensors_df}{A dataframe with the following columns
+\itemize{
+\item sensor_index: chr or num pa sensor data indexes
+\item MAC_SN: chr mac ids for sensors which will be included in output
+\item Name: chr names for sensors which will be included in output
+\item read_key: chr sensor read keys necessary to GET private data
+}}
 
 \item{fields}{A character vector of api fields to return}
 
-\item{api_read_key}{A valid character PurpleAir api read key
-inheritParams}
+\item{api_read_key}{A valid character PurpleAir api read key}
 }
 \value{
-A dataframe with field values
+A dataframe with field values for each supplied sensor
 }
 \description{
-GET PurpleAir Sensor Data
+\code{get_sensor_data()} allows a user to easily GET the latest field data for a
+group of sensors by supplying a subset of a dataframe containing sensor
+identifying information
 }
 \examples{
+# Dummy example inputs which will fail if actually run
+\dontrun{
 sensors <- data.frame(
   sensor_index = 122948,
   MAC_SN = "00:00:00:00:00:00",
@@ -30,4 +39,5 @@ sensors <- data.frame(
 fields_vector <- c("name", "uptime")
 api_read <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
 get_sensor_data(sensors, fields_vector, api_read)
+}
 }

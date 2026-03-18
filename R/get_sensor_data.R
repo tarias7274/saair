@@ -1,14 +1,23 @@
-#' GET PurpleAir Sensor Data
+#' GET latest PurpleAir sensor data
 #'
-#' @param sensors_df A dataframe with PurpleAir sensor info
+#' `get_sensor_data()` allows a user to easily GET the latest field data for a
+#' group of sensors by supplying a subset of a dataframe containing sensor
+#' identifying information
+#'
+#' @param sensors_df A dataframe with the following columns
+#'   * sensor_index: chr or num pa sensor data indexes
+#'   * MAC_SN: chr mac ids for sensors which will be included in output
+#'   * Name: chr names for sensors which will be included in output
+#'   * read_key: chr sensor read keys necessary to GET private data
 #' @param fields A character vector of api fields to return
 #' @param api_read_key A valid character PurpleAir api read key
-#' inheritParams
 #'
-#' @returns A dataframe with field values
+#' @returns A dataframe with field values for each supplied sensor
 #' @export
 #'
 #' @examples
+#' # Dummy example inputs which will fail if actually run
+#' \dontrun{
 #' sensors <- data.frame(
 #'   sensor_index = 122948,
 #'   MAC_SN = "00:00:00:00:00:00",
@@ -18,6 +27,7 @@
 #' fields_vector <- c("name", "uptime")
 #' api_read <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
 #' get_sensor_data(sensors, fields_vector, api_read)
+#' }
 get_sensor_data <- function(sensors_df, fields, api_read_key) {
   # Run datatype checks -------------------------------------------------------
   break_bool <- FALSE
