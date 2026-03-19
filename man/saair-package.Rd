@@ -17,7 +17,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Tristan Arias \email{tristan.arias@utsa.edu} (\href{https://orcid.org/0009-0002-3329-9216}{ORCID})
+\strong{Maintainer}: Tristan Arias \email{tristan.arias@utsa.edu} (\href{https://orcid.org/0009-0002-3329-9216}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

@@ -5,7 +5,7 @@ Authors@R:
   person(
     "Tristan", "Arias",
     email = "tristan.arias@utsa.edu",
-    role = c("aut", "cre"),
+    role = c("aut", "cre", "cph"),
     comment = c(ORCID = "0009-0002-3329-9216")
   )
 Description: Helps with tasks common to coding for Dr. Brown & Dr. Lopez-Ochoa
@@ -27,6 +27,7 @@ Imports:
     httr2,
     lubridate,
     readr,
+    readxl,
     rlang,
     stats,
     stringr
