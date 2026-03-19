@@ -28,26 +28,26 @@
 #' api_read <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
 #' get_sensor_data(sensors, fields_vector, api_read)
 #' }
-get_sensor_data <- function(sensors_df, fields, api_read_key) {
+get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
   # Run datatype checks -------------------------------------------------------
-  break_bool <- FALSE
+  bug_bool <- FALSE
   if (!is.data.frame(sensors_df)) {
     cli::cli_alert_danger("Incompatible type: sensors_df is not a dataframe")
-    break_bool <- TRUE
+    bug_bool <- TRUE
   }
   if (!is.vector(fields)) {
     cli::cli_alert_danger("Incompatible type: fields is not a vector")
-    break_bool <- TRUE
+    bug_bool <- TRUE
   }
   if (!is.character(fields)) {
     cli::cli_alert_danger("Incompatible type: fields is not a character")
-    break_bool <- TRUE
+    bug_bool <- TRUE
   }
   if (!is.character(api_read_key)) {
     cli::cli_alert_danger("Incompatible type: api_read_key is not a character")
-    break_bool <- TRUE
+    bug_bool <- TRUE
   }
-  if (break_bool == TRUE) stop()
+  if (bug_bool == TRUE) stop()
   # Get point total before download
   org_start <- httr::GET(
     "https://api.purpleair.com/v1/organization",

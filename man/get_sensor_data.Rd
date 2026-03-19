@@ -4,7 +4,7 @@
 \alias{get_sensor_data}
 \title{GET latest PurpleAir sensor data}
 \usage{
-get_sensor_data(sensors_df, fields, api_read_key)
+get_sensor_data(sensors_df, fields, api_read_key = get_api_key())
 }
 \arguments{
 \item{sensors_df}{A dataframe with the following columns
