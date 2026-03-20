@@ -1,0 +1,9 @@
+bibentry(
+  bibtype = "Unpublished",
+  title = "{saair} (San Antonio Air): A package for science and mitigation",
+  author = as.person("Tristan Arias"),
+  note = "In development for use in Dr. Brown & Dr. Lopez Ochoa labs at UT San Antonio. Add bug reports and feature requests as necessary if wider use is desired.",
+  school = "UT San Antonio",
+  url = "https://github.com/tarias7274/saair.git",
+  year = 2026
+)
