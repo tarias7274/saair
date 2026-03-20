@@ -35,8 +35,43 @@ devtools::install_github("tarias7274/saair")
 This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
+if (FALSE) {
 library(saair)
-## basic example code
+library(lubridate)
+library(cli)
+# Set path where function will find PurpleAir data
+load_path <- Sys.getenv("EXAMPLE_PATH")
+# Set start and end dates which will determine data pulled via overlap
+start_date <- as_datetime("2023-01-01", tz = "America/Chicago")
+end_date <- start_date + months(1)
+# Check interval as a sanity check
+sprintf(
+    "Pulling PurpleAir Data Overlapping with Interval %s",
+    interval(start = start_date, end = end_date)
+  ) |>
+  cli_alert_info()
+# Call function with given parameters
+pa_loaded_data <- load_padata(
+  data_dir = load_path,
+  interval(start = start_date, end = end_date),
+  projects = c("EMME")
+)
+# Perform posthoc sanity checks
+sprintf(
+  "Pulled data ranges %s--%s, containing indexes %s",
+  pa_loaded_data$Timestamp_Local |> min(),
+  pa_loaded_data$Timestamp_Local |> max(),
+  pa_loaded_data$sensor_index |> unique() |>
+    paste(collapse = ", ")
+) |> cli_alert_info()
+# Write out resulting object to new file
+if (FALSE) {
+  write_csv(
+    x = pa_loaded_data,
+    file = paste(load_path, "PA-Subset_20230101_20230501.csv", sep = "/")
+  )
+}
+}
 ```
 
 What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
