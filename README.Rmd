@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/tarias7274/saair/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tarias7274/saair/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/tarias7274/saair/graph/badge.svg)](https://app.codecov.io/gh/tarias7274/saair)
 <!-- badges: end -->
 
 The goal of saair (San Antonio Air) is to assist scientists and engineers in the Dr. Brown, Dr. Lopez-Ochoa, and related labs with expediently and effectively studying heat and air quality in the City of San Antonio, Texas. Formatting help code as a function enables more robust and easy-to-maintain documentation and easy import into any code file of any project without having to maintain disparate definitions within several scripts or definitions across repositories or directories with inconsistent access.

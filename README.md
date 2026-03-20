@@ -6,6 +6,8 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/tarias7274/saair/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/tarias7274/saair/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/tarias7274/saair/graph/badge.svg)](https://app.codecov.io/gh/tarias7274/saair)
 <!-- badges: end -->
 
 The goal of saair (San Antonio Air) is to assist scientists and
