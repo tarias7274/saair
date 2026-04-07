@@ -116,6 +116,10 @@ coerce_date_sequence <- function(
     rm(start_date_2)
   }
   # Break date block into smaller bits ----------------------------------------
+  # Explicit date conversion for use in seq.Date in
+  # ubuntu-latest (oldrel-1) systems
+  start_date <- start_date |> as.Date(tz = time_zone)
+  end_date <- end_date |> as.Date(tz = time_zone)
   if(day(start_date) == 1) {
     download_dates <- c(
       start_date,
@@ -134,6 +138,8 @@ coerce_date_sequence <- function(
   download_dates <- download_dates[
     download_dates >= start_date & download_dates <= end_date
   ]
+  download_dates <- download_dates |>
+    as_datetime(tz = time_zone)
   return(download_dates)
 }
 
