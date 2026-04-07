@@ -2,14 +2,17 @@
 #'
 #' `get_sensor_data()` allows a user to easily GET the latest field data for a
 #' group of sensors by supplying a subset of a dataframe containing sensor
-#' identifying information
+#' identifying information. Uses the PurpleAir Get Sensor Data api request to
+#' pull data from PurpleAir
 #'
 #' @param sensors_df A dataframe with the following columns
 #'   * sensor_index: chr or num pa sensor data indexes
 #'   * MAC_SN: chr mac ids for sensors which will be included in output
 #'   * Name: chr names for sensors which will be included in output
 #'   * read_key: chr sensor read keys necessary to GET private data
-#' @param fields A character vector of api fields to return
+#' @param fields A character vector of api fields to return; valid fields can
+#' be found at https://api.purpleair.com/#api-sensors-get-sensor-data and
+#' https://community.purpleair.com/t/api-fields-descriptions/4652
 #' @param api_read_key A valid character PurpleAir api read key
 #'
 #' @returns A dataframe with field values for each supplied sensor
@@ -127,11 +130,11 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
       sprintf(
         "Data Request Success for SID%.0f: %s!",
         data$sensor$sensor_index,
-        dplyr::if_else(
-          !is.null(data$sensor$name),
-          data$sensor$name,
+        if(!is.null(data$sensor$name)) {
+          data$sensor$name
+        } else {
           NA_character_
-        )
+        }
       ) |> cli::cli_alert_success()
     } else if (data_request$status_code != 200) {
       # Data Parse Failure Message :(

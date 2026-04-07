@@ -15,7 +15,9 @@ get_sensor_data(sensors_df, fields, api_read_key = get_api_key())
 \item read_key: chr sensor read keys necessary to GET private data
 }}
 
-\item{fields}{A character vector of api fields to return}
+\item{fields}{A character vector of api fields to return; valid fields can
+be found at https://api.purpleair.com/#api-sensors-get-sensor-data and
+https://community.purpleair.com/t/api-fields-descriptions/4652}
 
 \item{api_read_key}{A valid character PurpleAir api read key}
 }
@@ -25,7 +27,8 @@ A dataframe with field values for each supplied sensor
 \description{
 \code{get_sensor_data()} allows a user to easily GET the latest field data for a
 group of sensors by supplying a subset of a dataframe containing sensor
-identifying information
+identifying information. Uses the PurpleAir Get Sensor Data api request to
+pull data from PurpleAir
 }
 \examples{
 # Dummy example inputs which will fail if actually run
