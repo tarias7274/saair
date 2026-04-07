@@ -55,8 +55,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
   org_start <- httr::GET(
     "https://api.purpleair.com/v1/organization",
     httr::add_headers("X-API-Key" = api_read_key)
-  ) |>
-    httr::content(as = "parsed")
+  ) |> httr::content(as = "parsed")
   # Start message
   sprintf(
     "Downloading Latest Data from %.0f PurpleAir Sensors",
@@ -167,7 +166,11 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     pa_sensor_data <- if (is.null(pa_sensor_data)) {
       data_df
     } else {
-      dplyr::full_join(pa_sensor_data, data_df)
+      dplyr::full_join(
+        pa_sensor_data,
+        data_df,
+        by = names(pa_sensor_data)
+      )
     }
     # Suspend execution for appropriate time to avoid exceeding
     # API request's rate limit
