@@ -158,7 +158,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
       # Data Parse Failure Message :(
       sprintf(
         paste(
-          "Error in SID%.0f",
+          "Error in SID%s",
           "Error Code %.0f: %s\n%s",
           sep = "\n"
         ),
@@ -172,13 +172,11 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     }
     # Create dataframe from parse list
     data_df <- data.frame(data$sensor) |>
-      dplyr::mutate(
+      mutate(
         MAC_SN = sensor_mac,
         dplyr::across(
-          c("last", "date") |>
-            dplyr::contains() |>
-            dplyr::any_of(),
-          ~ as_datetime(.x) |> date()
+          tidyselect::matches("last|date"),
+          ~ as_datetime(.x) |> lubridate::date()
         )
       )
     # Create or append data to overall frame

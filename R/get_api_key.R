@@ -7,11 +7,7 @@
 #' get_api_key()
 get_api_key <- function() {
   key <- Sys.getenv("SAAIR_KEY")
-  if (!identical(key, "")) {
-    return(key)
-  }
-
-  if (is_testing()) {
+  if (!identical(key, "") & is_testing()) {
     return(testing_key())
   } else {
     paste0(
