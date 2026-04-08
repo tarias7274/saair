@@ -3,6 +3,9 @@ is_testing <- function() {
 }
 
 test_that("Output matches expectation", {
+
+  skip_if(identical(Sys.getenv("SAAIR_KEY"), ""))
+
   testing_data <- data.frame(
     sensor_index = "151664",
     Name = "UTSA W Campus",
