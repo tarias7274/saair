@@ -50,7 +50,26 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     cli::cli_alert_danger("Incompatible type: api_read_key is not a character")
     bug_bool <- TRUE
   }
+  if (!all(c("sensor_index", "MAC_SN", "Name", "read_key") %in%
+           colnames(sensors_df))) {
+    sprintf(
+      "Missing \"%s\" from required columns",
+      c("sensor_index", "MAC_SN", "Name", "read_key")[
+        saair::`%notin%`(c("sensor_index", "MAC_SN", "Name", "read_key"),
+          colnames(sensors_df))]
+    ) |> cli::cli_alert_danger()
+    bug_bool <- TRUE
+  } else {
+    if (any(is.na(as.numeric(sensors_df$sensor_index)))) {
+      cli::cli_alert_danger(
+        "Incompatible value: sensor indexes cannot be coerced to numeric"
+      )
+      bug_bool <- TRUE
+    }
+  }
   if (bug_bool == TRUE) stop()
+  # Convert sensor index column to character for string insertion functions
+  sensors_df$sensor_index <- sensors_df$sensor_index |> as.character()
   # Get point total before download
   org_start <- httr::GET(
     "https://api.purpleair.com/v1/organization",
