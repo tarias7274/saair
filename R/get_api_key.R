@@ -11,6 +11,8 @@ get_api_key <- function() {
   key <- Sys.getenv("SAAIR_KEY")
   if (!identical(key, "") & is_testing()) {
     return(testing_key())
+  } else if (!identical(key, "")) {
+    stop("Not testing; Exiting")
   } else {
     paste0(
       "No API key found, please supply with `api_key` argument or ",
