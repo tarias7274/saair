@@ -4,7 +4,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' get_api_key()
+#' }
 get_api_key <- function() {
   key <- Sys.getenv("SAAIR_KEY")
   if (!identical(key, "") & is_testing()) {
