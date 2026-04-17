@@ -1,6 +1,6 @@
 Package: saair
 Title: Useful code for Dr. Brown Air Quality lab at UTSA
-Version: 0.0.6
+Version: 0.0.7
 Authors@R: 
   person(
     "Tristan", "Arias",

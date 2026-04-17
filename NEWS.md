@@ -15,6 +15,7 @@
 * Added coerce_date_sequence function
 * Changed coerce_date_sequence to ignore potentially-conflicting start/end_date
 timezones in favor of the value of the explicit time_zone argument
+* Added optimize_path function
 
 ## Bug Fixes
 
