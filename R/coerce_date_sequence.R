@@ -16,6 +16,10 @@
 #' dates will be permitted
 #' @param limit_unit a character, optional; unit of the limit numeric i.e.
 #' "days", "months". Defaults to "days"
+#' @param ignore.paradox a boolean which allows the user to create date ranges
+#' which go into the future, so as to e.g. proactively create data folders
+#' @param reverse.force a boolean which reverses default "clamping" date
+#' behavior to "expansion" date behavior
 #'
 #' @returns A vector of Date values which includes the `start_date`, `end_date`,
 #' and any 1st and/or 16th of the months in-between
@@ -32,15 +36,21 @@
 #' download_dates
 coerce_date_sequence <- function(
   start_date, end_date, time_zone = Sys.timezone(),
-  limit = NULL, limit_unit = "days"
+  limit = NULL, limit_unit = "days", ignore.paradox = FALSE,
+  reverse.force = FALSE
 ) {
   date_today <- today(tzone = time_zone)
   start_date <- start_date |> force_tz(time_zone)
   end_date <- end_date |> force_tz(time_zone)
-  # Coerce start date forward in time -----------------------------------------
-  start_date <- start_pull(start_date)
-  # Coerce end date backwards in time -----------------------------------------
-  end_date <- end_push(end_date)
+  if (reverse.force == FALSE) {
+    # Clamp dates
+    start_date <- date_pull(start_date)
+    end_date <- date_push(end_date)
+  } else if (reverse.force == TRUE) {
+    # Expand dates
+    start_date <- date_push(start_date)
+    end_date <- date_pull(end_date)
+  }
   # Fix start_date older than limit -------------------------------------------
   if (!is.null(limit)) {
     if (is.na(as.period(limit))) {
@@ -82,7 +92,7 @@ coerce_date_sequence <- function(
       ) |> cli_alert_info()
       start_date_reference <- start_date
       start_date <- date_today - limit
-      start_date <- start_pull(start_date)
+      start_date <- date_pull(start_date)
       sprintf(
         "Date moved: %s -> %s (Today - %s days)",
         start_date_reference,
@@ -92,11 +102,11 @@ coerce_date_sequence <- function(
     }
   }
   # Fix EndDate in the future --------------------------------------------------
-  if (end_date > date_today) {
+  if (end_date > date_today & ignore.paradox == FALSE) {
     cli_alert_info("End date in future. Setting to most recent valid date.")
     end_date_reference <- end_date
     end_date <- date_today
-    end_date <- end_push(end_date)
+    end_date <- date_push(end_date)
     sprintf(
       "Date moved: %s -> %s",
       end_date_reference,
@@ -143,7 +153,7 @@ coerce_date_sequence <- function(
   return(download_dates)
 }
 
-start_pull <- function (x) {
+date_pull <- function (x) {
   # Coerce start date forward in time -----------------------------------------
   if(day(x) != 1 && day(x) != 16) {
     x <- lubridate::ceiling_date(
@@ -153,7 +163,7 @@ start_pull <- function (x) {
   return(x)
 }
 
-end_push <- function (x) {
+date_push <- function (x) {
   # Coerce end date backwards in time -----------------------------------------
   if(day(x) != 1 && day(x) != 16) {
     # account for day 31 edge case that floors to 31

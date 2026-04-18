@@ -12,7 +12,7 @@ test_that("Start date always has correct day", {
     rep(as.Date("2024-02-01"), 16)
   )
   # do test
-  expect_equal(sapply(test_dates, start_pull), expected_output)
+  expect_equal(sapply(test_dates, date_pull), expected_output)
 })
 
 test_that("End date always has correct day", {
@@ -29,7 +29,7 @@ test_that("End date always has correct day", {
     rep(as.Date("2024-02-01"), 1)
   )
   # do test
-  expect_equal(sapply(test_dates, end_push), expected_output)
+  expect_equal(sapply(test_dates, date_push), expected_output)
 })
 
 test_that("Function properly handles flipped dates", {
