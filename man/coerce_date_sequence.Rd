@@ -10,8 +10,12 @@ coerce_date_sequence(
   time_zone = Sys.timezone(),
   limit = NULL,
   limit_unit = "days",
+<<<<<<< HEAD
   ignore.paradox = FALSE,
   reverse.force = FALSE
+=======
+  ignore.paradox = FALSE
+>>>>>>> df85b74e93b26292eff19d6c985fe84d79b71ab9
 )
 }
 \arguments{
@@ -30,9 +34,12 @@ dates will be permitted}
 
 \item{ignore.paradox}{a boolean which allows the user to create date ranges
 which go into the future, so as to e.g. proactively create data folders}
+<<<<<<< HEAD
 
 \item{reverse.force}{a boolean which reverses default "clamping" date
 behavior to "expansion" date behavior}
+=======
+>>>>>>> df85b74e93b26292eff19d6c985fe84d79b71ab9
 }
 \value{
 A vector of Date values which includes the \code{start_date}, \code{end_date},
