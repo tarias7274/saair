@@ -16,6 +16,8 @@
 #' dates will be permitted
 #' @param limit_unit a character, optional; unit of the limit numeric i.e.
 #' "days", "months". Defaults to "days"
+#' @param ignore.paradox a boolean which allows the user to create date ranges
+#' which go into the future, so as to e.g. proactively create data folders
 #'
 #' @returns A vector of Date values which includes the `start_date`, `end_date`,
 #' and any 1st and/or 16th of the months in-between
@@ -32,7 +34,7 @@
 #' download_dates
 coerce_date_sequence <- function(
   start_date, end_date, time_zone = Sys.timezone(),
-  limit = NULL, limit_unit = "days"
+  limit = NULL, limit_unit = "days", ignore.paradox = FALSE
 ) {
   date_today <- today(tzone = time_zone)
   start_date <- start_date |> force_tz(time_zone)
@@ -92,7 +94,7 @@ coerce_date_sequence <- function(
     }
   }
   # Fix EndDate in the future --------------------------------------------------
-  if (end_date > date_today) {
+  if (end_date > date_today & ignore.paradox == FALSE) {
     cli_alert_info("End date in future. Setting to most recent valid date.")
     end_date_reference <- end_date
     end_date <- date_today

@@ -9,7 +9,8 @@ coerce_date_sequence(
   end_date,
   time_zone = Sys.timezone(),
   limit = NULL,
-  limit_unit = "days"
+  limit_unit = "days",
+  ignore.paradox = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,9 @@ dates will be permitted}
 
 \item{limit_unit}{a character, optional; unit of the limit numeric i.e.
 "days", "months". Defaults to "days"}
+
+\item{ignore.paradox}{a boolean which allows the user to create date ranges
+which go into the future, so as to e.g. proactively create data folders}
 }
 \value{
 A vector of Date values which includes the \code{start_date}, \code{end_date},
