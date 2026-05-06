@@ -20,11 +20,14 @@ folders}
 \item{load_interval}{A lubridate interval that loads any data files which
 have intervals which overlap with it}
 
-\item{indexes}{A vector of character or numeric pa data indexes}
+\item{indexes}{A vector of character or numeric pa data indexes. Valid
+indexes are always six digits long}
 
-\item{pa_names}{A vector of character pa names}
+\item{pa_names}{A vector of character pa names. This argument and \code{projects}
+accept partial, case-insensitive matching}
 
-\item{projects}{A vector of character pa projects}
+\item{projects}{A vector of character pa projects. This argument and
+\code{pa_names} accept partial, case-insensitive matching}
 
 \item{all_sensors}{A boolean which confirms no filtering. If data from all
 sensors is desired, input no values for indexes/pa_names/projects and set

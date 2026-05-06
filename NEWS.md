@@ -20,6 +20,9 @@ timezones in favor of the value of the explicit time_zone argument
 to create date sequences going into the future
 * Added argument to coerce_date_sequence which allows user to change default
 behavior when using a small date difference to create an initial interval
+* Modified load_padata to catch improperly-supplied sensor indexes
+* Added load_padata catch to prevent it from erroring when finding no sensor matches
+* Added ability to multiple partial non-case-sensitive name selection filters
 
 ## Bug Fixes
 

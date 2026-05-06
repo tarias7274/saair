@@ -8,9 +8,12 @@
 #' folders
 #' @param load_interval A lubridate interval that loads any data files which
 #' have intervals which overlap with it
-#' @param indexes A vector of character or numeric pa data indexes
-#' @param pa_names A vector of character pa names
-#' @param projects A vector of character pa projects
+#' @param indexes A vector of character or numeric pa data indexes. Valid
+#' indexes are always six digits long
+#' @param pa_names A vector of character pa names. This argument and `projects`
+#' accept partial, case-insensitive matching
+#' @param projects A vector of character pa projects. This argument and
+#' `pa_names` accept partial, case-insensitive matching
 #' @param all_sensors A boolean which confirms no filtering. If data from all
 #' sensors is desired, input no values for indexes/pa_names/projects and set
 #' this to `TRUE`
@@ -52,10 +55,15 @@ load_padata <- function(
     ) |> cli_alert_danger()
     bug_bool <- TRUE
   }
-  if (!(is.null(indexes) && is.null(pa_names) && is.null(projects))) {
+  # Check selection vars if any are supplied
+  if (any(!is.null(indexes), !is.null(pa_names), !is.null(projects))) {
     if (!is.null(indexes)) {
       if (!is.vector(indexes)) {
         cli_alert_danger("indexes must be a vector")
+        bug_bool <- TRUE
+      }
+      if (any(nchar(indexes) != 6)) {
+        cli_alert_danger("indexes must be exactly 6 digits long")
         bug_bool <- TRUE
       }
     }
@@ -110,7 +118,10 @@ load_padata <- function(
     if (!is.null(pa_names)) {
       name_indexes <- locations_info |>
         filter(
-          .data$Name %in% pa_names,
+          grepl(
+            pattern = toupper(paste(pa_names, collapse = "|")),
+            toupper(.data$Name)
+          ),
           !is.na(.data$sensor_index)
         ) |>
         pull("sensor_index")
@@ -145,6 +156,11 @@ load_padata <- function(
           sort()
       }
     }
+  }
+  if (length(indexes) == 0) {
+    # Break function if no sensors detected
+    cli_alert_danger("No sensors found for selection criteria")
+    stop()
   }
   # Filtering for time and sensor ---------------------------------------------
   # Get folders that are in chosen data directory
