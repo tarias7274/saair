@@ -5,18 +5,23 @@
 #' output.
 #'
 #' @param data_dir A character path from pc root to directory containing pa data
-#' folders
+#' folders and `ListOfLocations_Clean.csv` sheet. The values in the
+#' `sensor_index`, `Name`, and `Project` columns are referenced in this
+#' function's matching arguments
 #' @param load_interval A lubridate interval that loads any data files which
 #' have intervals which overlap with it
-#' @param indexes A vector of character or numeric pa data indexes. Valid
-#' indexes are always six digits long
-#' @param pa_names A vector of character pa names. This argument and `projects`
-#' accept partial, case-insensitive matching
+#' @param indexes A vector of character or numeric purpleair data indexes. Valid
+#' indexes are always six digits long, but may include a seventh some time in
+#' the future
+#' @param names A vector of character purpleair sensor names. This argument and
+#' `projects` accept partial, case-insensitive matching
 #' @param projects A vector of character pa projects. This argument and
-#' `pa_names` accept partial, case-insensitive matching
+#' `names` accept partial, case-insensitive matching
 #' @param all_sensors A boolean which confirms no filtering. If data from all
-#' sensors is desired, input no values for indexes/pa_names/projects and set
+#' sensors is desired, input no values for indexes/names/projects and set
 #' this to `TRUE`
+#' @param verbose A boolean which disables(default) or enables cli progress
+#' bar updating on loading progress
 #'
 #' @returns A dataframe containing all pa data matching selection criteria
 #' @export
@@ -26,8 +31,8 @@
 #' load_padata()
 #' }
 load_padata <- function(
-  data_dir, load_interval, indexes = NULL, pa_names = NULL, projects = NULL,
-  all_sensors = FALSE
+  data_dir, load_interval, indexes = NULL, names = NULL, projects = NULL,
+  all_sensors = FALSE, verbose = FALSE
 ) {
   bug_bool <- FALSE
   # Make sure parameter classes are correct
@@ -56,7 +61,7 @@ load_padata <- function(
     bug_bool <- TRUE
   }
   # Check selection vars if any are supplied
-  if (any(!is.null(indexes), !is.null(pa_names), !is.null(projects))) {
+  if (any(!is.null(indexes), !is.null(names), !is.null(projects))) {
     if (!is.null(indexes)) {
       if (!is.vector(indexes)) {
         cli_alert_danger("indexes must be a vector")
@@ -67,12 +72,12 @@ load_padata <- function(
         bug_bool <- TRUE
       }
     }
-    if (!is.null(pa_names)) {
-      if (!is.vector(pa_names)) {
+    if (!is.null(names)) {
+      if (!is.vector(names)) {
         cli_alert_danger("names must be a vector")
         bug_bool <- TRUE
       }
-      if (!is.character(pa_names)) {
+      if (!is.character(names)) {
         sprintf(
           "supplied names parameter were of %s class\n",
           "names must be of the character class",
@@ -107,7 +112,16 @@ load_padata <- function(
   # Get locations_info for getting indexes from names or projects
   locations_info <- data_dir |>
     paste("ListOfLocations_Clean.csv", sep = "/") |>
-    read_csv()
+    read_csv(
+      col_types = readr::cols(
+        .default = "?", sensor_index = "i", Name = "c", read_key = "c",
+        Lat = "d", Long = "d", Network = "f", MAC = "c", Model = "f",
+        Storage_GB = "i", Privacy = "f", wifi_access = "l",
+        install_date = "D", uninstall_date = "D", placement = "f",
+        PA_order = "f", Project = "c", Address = "c",
+        ContactName = "c", ContactPhone = "c", ContactEmail = "c"
+      )
+    )
   # Override/Skip specific selections if all_sensors set to TRUE
   if (all_sensors == TRUE) {
     indexes <- locations_info |>
@@ -115,11 +129,11 @@ load_padata <- function(
       pull("sensor_index")
   } else {
     # Convert names to indexes
-    if (!is.null(pa_names)) {
+    if (!is.null(names)) {
       name_indexes <- locations_info |>
         filter(
           grepl(
-            pattern = toupper(paste(pa_names, collapse = "|")),
+            pattern = toupper(paste(names, collapse = "|")),
             toupper(.data$Name)
           ),
           !is.na(.data$sensor_index)
@@ -165,46 +179,65 @@ load_padata <- function(
   # Filtering for time and sensor ---------------------------------------------
   # Get folders that are in chosen data directory
   existing_folders <- list.files(data_dir) |>
-    grep(pattern = ".csv|.xlsx", value = TRUE, invert = TRUE) |>
-    grep(pattern = "RAW", value = TRUE) |>
+    grep(pattern = "_RAW$", value = TRUE) |>
     data.frame() |>
     setNames("folder")
+  # Reference against desired folder sequence
+  folder_sequence <- coerce_date_sequence(
+    lubridate::int_start(load_interval), lubridate::int_end(load_interval),
+    ignore.paradox = TRUE, reverse.force = TRUE
+  )
+  folder_sequence <- data.frame(
+    folder_name = paste(
+      "PA",
+      utils::head(folder_sequence, -1) |>
+        stringr::str_remove_all("-") |>
+        str_sub(end = 8),
+      utils::tail(folder_sequence, -1) |>
+        stringr::str_remove_all("-") |>
+        str_sub(end = 8),
+      "RAW",
+      sep = "_"
+    ),
+    folder_interval = interval(
+      start = utils::head(folder_sequence, -1),
+      end = utils::tail(folder_sequence, -1)
+    )
+  )
   # Get subset of folders that contain data overlapping with
   # defined time period
   folder_matches <- existing_folders |>
-    mutate(
-      interval = str_sub(.data$folder, start = 4, end = 20),
-      start = str_sub(.data$interval, end = 8) |>
-        as_datetime() |>
-        force_tz(tzone = "America/Chicago"),
-      end = str_sub(.data$interval, start = -8) |>
-        as_datetime() |>
-        force_tz(tzone = "America/Chicago"),
-      interval = interval(
-        .data$start + days(1),
-        .data$end - days(1)
+    filter(folder %in% folder_sequence$folder_name) |>
+    pull(folder)
+  # Output feedback if function is verbose
+  if (verbose) {
+    sprintf(
+      "Loading Data from %.0f PurpleAir Sensors for %s",
+      length(indexes),
+      load_interval
+    ) |> cli_alert_info()
+    # Create progress bar if function is verbose
+    options(cli.progress_show_after = 0)
+    cli_progress_bar(
+      total = length(folder_matches) * length(indexes),
+      format = paste0(
+        "Sensor [{pb_current}/{pb_total}] ",
+        "{pb_bar} {pb_percent} | ETA:{pb_eta}"
       )
-    ) |>
-    select("folder", "interval") |>
-    filter(
-      int_overlaps(.data$interval, load_interval)
-    ) |>
-    pull("folder")
-  sprintf(
-    "Loading Data from %.0f PurpleAir Sensors for %s",
-    length(indexes),
-    load_interval
-  ) |> cli_alert_info()
-  options(cli.progress_show_after = 0)
-  cli_progress_bar(
-    total = length(folder_matches) * length(indexes),
-    format = paste0(
-      "Sensor [{pb_current}/{pb_total}] ",
-      "{pb_bar} {pb_percent} | ETA:{pb_eta}"
     )
-  )
+  }
   # Actually pull the data ----------------------------------------------------
-  data_out <- c()
+  # Create empty data to append to
+  data_out <- data.frame(
+    sensor_index = integer(),
+    Timestamp_Local = character(),
+    RSSI = integer(),
+    RH = integer(),
+    T_air = integer(),
+    Abs_P = double(),
+    PM2.5_A = double(),
+    PM2.5_B = double()
+  )
   for (folder_match in folder_matches) {
     # Get file names that
     data_files <- paste(data_dir, folder_match, sep = "/") |>
@@ -215,29 +248,50 @@ load_padata <- function(
       str_sub(start = 7, end = 12) |>
       as.numeric()
     missing_sensors <- indexes[indexes %notin% found_sensors]
-    if (length(missing_sensors) > 0) {
+    # Output missing sensor feedback if function is verbose
+    if (length(missing_sensors) > 0 & verbose) {
       sprintf(
         "No data found for sensor(s) %s in %s. Skipping",
         paste(missing_sensors, collapse = ", "),
         folder_match
       ) |> cli_alert_info()
+      # Update progress bar if function is verbose
       for (i in length(missing_sensors)) {
         cli_progress_update()
       }
     }
     for (data_file in data_files) {
       data_append <- paste(data_dir, folder_match, data_file, sep = "/") |>
-        read_csv()
-      if (is.null(data_out)) {
-        data_out <- data_append
-      } else {
-        data_out <- full_join(
-          data_out,
-          data_append,
-          by = colnames(data_out)
+        read_csv(
+          col_types = readr::cols(
+            .default = "?", sensor_index = "i", Timestamp_Local = "c",
+            RSSI = "i", RH = "i", T_air = "i",
+            Abs_P = "d", PM2.5_A = "d", PM2.5_B = "d"
+          )
         )
+      # Check for saved datetime format
+      # Force to 8601 character if in other format
+      if (!grepl(
+        "[-]", str_sub(data_append$Timestamp_Local[1], start = -8)
+      )) {
+        data_append <- data_append |>
+          mutate(
+            Timestamp_Local = Timestamp_Local |>
+              as_datetime(tz = "America/Chicago") |>
+              lubridate::format_ISO8601(usetz = TRUE) |>
+              str_sub(end = -3) |>
+              paste0(":00")
+          )
       }
-      cli_progress_update()
+      common_cols <- intersect(
+        colnames(data_out),
+        colnames(data_append)
+      )
+      data_out <- data_out |>
+        full_join(data_append, by = common_cols)
+      rm(data_append)
+      # Update progress bar if function is verbose
+      if (verbose) cli_progress_update()
     }
   }
   return(data_out)

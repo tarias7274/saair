@@ -11,7 +11,7 @@ test_that("Output matches expectation", {
     Name = "UTSA W Campus",
     read_key = "95OQ853QATISF7V8",
     MAC_SN = "30:83:98:B0:4D:F9"
-  )
+    )
   test_mem <- testing_data |>
     get_sensor_data(
       fields = c("hardware", "date_created"),
@@ -22,6 +22,6 @@ test_that("Output matches expectation", {
     date_created = as.Date("2022-06-29"),
     hardware = "2.0+OPENLOG+31037 MB+PMSX003-B+PMSX003-A",
     MAC_SN = "30:83:98:B0:4D:F9"
-  )
+    )
   expect_equal(test_mem, expected_output)
 })

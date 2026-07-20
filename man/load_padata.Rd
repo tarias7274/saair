@@ -8,30 +8,37 @@ load_padata(
   data_dir,
   load_interval,
   indexes = NULL,
-  pa_names = NULL,
+  names = NULL,
   projects = NULL,
-  all_sensors = FALSE
+  all_sensors = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
 \item{data_dir}{A character path from pc root to directory containing pa data
-folders}
+folders and \code{ListOfLocations_Clean.csv} sheet. The values in the
+\code{sensor_index}, \code{Name}, and \code{Project} columns are referenced in this
+function's matching arguments}
 
 \item{load_interval}{A lubridate interval that loads any data files which
 have intervals which overlap with it}
 
-\item{indexes}{A vector of character or numeric pa data indexes. Valid
-indexes are always six digits long}
+\item{indexes}{A vector of character or numeric purpleair data indexes. Valid
+indexes are always six digits long, but may include a seventh some time in
+the future}
 
-\item{pa_names}{A vector of character pa names. This argument and \code{projects}
-accept partial, case-insensitive matching}
+\item{names}{A vector of character purpleair sensor names. This argument and
+\code{projects} accept partial, case-insensitive matching}
 
 \item{projects}{A vector of character pa projects. This argument and
-\code{pa_names} accept partial, case-insensitive matching}
+\code{names} accept partial, case-insensitive matching}
 
 \item{all_sensors}{A boolean which confirms no filtering. If data from all
-sensors is desired, input no values for indexes/pa_names/projects and set
+sensors is desired, input no values for indexes/names/projects and set
 this to \code{TRUE}}
+
+\item{verbose}{A boolean which disables(default) or enables cli progress
+bar updating on loading progress}
 }
 \value{
 A dataframe containing all pa data matching selection criteria
