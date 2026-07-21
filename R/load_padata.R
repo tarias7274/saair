@@ -249,7 +249,7 @@ load_padata <- function(
       as.numeric()
     missing_sensors <- indexes[indexes %notin% found_sensors]
     # Output missing sensor feedback if function is verbose
-    if (length(missing_sensors) > 0 & verbose) {
+    if ((length(missing_sensors) > 0) & verbose) {
       sprintf(
         "No data found for sensor(s) %s in %s. Skipping",
         paste(missing_sensors, collapse = ", "),

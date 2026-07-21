@@ -1,10 +1,10 @@
 test_that("load works", {
+  skip_on_cran()
   test_mem <- load_padata(
-    data_dir = paste(
-      "C:/Users/metro/OneDrive - University of Texas at San Antonio",
-      "0_Documents/Air-Quality-Scratch/0_RAW/PurpleAir",
-      sep = "/"
-    ),
+    data_dir = system.file(
+      package = "saair",
+      "..", "..", "Air-Quality-Scratch", "0_RAW", "PurpleAir"
+      ),
     load_interval = interval(
       as.Date("2026-06-01") |> force_tz("America/Chicago"),
       as.Date("2026-06-16") |> force_tz("America/Chicago")
