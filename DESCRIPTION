@@ -1,6 +1,6 @@
 Package: saair
 Title: Useful code for Dr. Brown Air Quality lab at UTSA
-Version: 0.0.7.5
+Version: 0.0.8.0
 Authors@R: 
   person(
     "Tristan", "Arias",
@@ -36,4 +36,3 @@ URL: https://github.com/tarias7274/saair
 BugReports: https://github.com/tarias7274/saair/issues
 Depends: 
     R (>= 4.1.0)
-LazyData: true

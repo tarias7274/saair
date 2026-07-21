@@ -24,6 +24,7 @@ behavior when using a small date difference to create an initial interval
 * Added `load_padata()` catch to prevent it from erroring when finding no sensor matches
 * Added ability to multiple partial non-case-sensitive name selection filters
 * Added ability to opt out of `load_padata()` verbosity by default
+* Added `calpat()` function to calibrate PurpleAir temperature data
 
 ## Bug Fixes
 
