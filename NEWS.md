@@ -25,6 +25,7 @@ behavior when using a small date difference to create an initial interval
 * Added ability to multiple partial non-case-sensitive name selection filters
 * Added ability to opt out of `load_padata()` verbosity by default
 * Added `calpat()` function to calibrate PurpleAir temperature data
+* Added `base10to2()` and `base2to10()` functions for efficient flag handling
 
 ## Bug Fixes
 
