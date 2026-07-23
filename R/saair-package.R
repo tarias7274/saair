@@ -10,6 +10,7 @@
 #' @importFrom cli cli_progress_update
 #' @importFrom dplyr filter
 #' @importFrom dplyr full_join
+#' @importFrom dplyr if_else
 #' @importFrom dplyr mutate
 #' @importFrom dplyr pull
 #' @importFrom dplyr select

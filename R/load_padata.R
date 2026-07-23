@@ -207,8 +207,8 @@ load_padata <- function(
   # Get subset of folders that contain data overlapping with
   # defined time period
   folder_matches <- existing_folders |>
-    filter(folder %in% folder_sequence$folder_name) |>
-    pull(folder)
+    filter(.data$folder %in% folder_sequence$folder_name) |>
+    pull(.data$folder)
   # Output feedback if function is verbose
   if (verbose) {
     sprintf(
@@ -270,29 +270,36 @@ load_padata <- function(
           )
         )
       # Check for saved datetime format
-      # Force to 8601 character if in other format
-      if (!grepl(
-        "[-]", str_sub(data_append$Timestamp_Local[1], start = -8)
-      )) {
-        data_append <- data_append |>
-          mutate(
-            Timestamp_Local = Timestamp_Local |>
-              as_datetime(tz = "America/Chicago") |>
+      data_append <- data_append |>
+        mutate(
+          # Correct timestamps missing colon in UTC offset
+          Timestamp_Local = if_else(
+            str_sub(.data$Timestamp_Local, end = -5) %in% c("-0500", "-0600"),
+            str_sub(.data$Timestamp_Local, end = -3) |> paste0(":00"),
+            .data$Timestamp_Local
+          ),
+          # Correct timestamps that were saved in posix
+          Timestamp_Local = if_else(
+            str_sub(
+              .data$Timestamp_Local, end = -5
+              ) %notin% c("-05:00", "-06:00"),
+            as_datetime(.data$Timestamp_Local, tz = "America/Chicago") |>
               lubridate::format_ISO8601(usetz = TRUE) |>
               str_sub(end = -3) |>
-              paste0(":00")
+              paste0(":00"),
+            .data$Timestamp_Local
           )
-      }
-      common_cols <- intersect(
-        colnames(data_out),
-        colnames(data_append)
-      )
+          # Ignore duplicate rows from incorrect past treatment of datetimes
+        ) |> dplyr::distinct()
       data_out <- data_out |>
-        full_join(data_append, by = common_cols)
+        full_join(
+          data_append,
+          by = intersect(colnames(data_out), colnames(data_append))
+          )
       rm(data_append)
       # Update progress bar if function is verbose
       if (verbose) cli_progress_update()
     }
   }
-  return(data_out)
+  data_out
 }

@@ -133,26 +133,17 @@ calpat <- function(
     # Timestamp_Local has the right clock time but wrong timezone label
     data <- data |>
       mutate(
-        PA_time_local = suppressWarnings(as_datetime(
-          .data[[time_col]],
-          tzone = timezone
-          )),
+        PA_time_local = as_datetime(.data[[time_col]], tzone = timezone) |>
+          suppressWarnings(),
         # Convert that corrected local time to UTC for matching
-        PA_time_UTC = lubridate::with_tz(
-          PA_time_local,
-          tzone = "UTC"
-          )
+        PA_time_UTC = lubridate::with_tz(.data$PA_time_local, tzone = "UTC")
         )
     } else { # if is timestamp
       data <- data |>
         mutate(
-          PA_time_UTC = lubridate::with_tz(
-            .data[[time_col]],
-            tzone = "UTC"
-            ),
+          PA_time_UTC = lubridate::with_tz(.data[[time_col]], tzone = "UTC"),
           PA_time_local = lubridate::with_tz(
-            PA_time_UTC,
-            tzone = timezone
+            .data$PA_time_UTC, tzone = timezone
             )
         )
       }
@@ -161,10 +152,10 @@ calpat <- function(
     mutate(
       time_decimal = lubridate::hour(.data$PA_time_local) +
         lubridate::minute(.data$PA_time_local) / 60,
-      time_sin = sin(2 * pi * time_decimal / 24),
-      time_cos = cos(2 * pi * time_decimal / 24),
-      time_sin2 = sin(4 * pi * time_decimal / 24),
-      time_cos2 = cos(4 * pi * time_decimal / 24)
+      time_sin = sin(2 * pi * .data$time_decimal / 24),
+      time_cos = cos(2 * pi * .data$time_decimal / 24),
+      time_sin2 = sin(4 * pi * .data$time_decimal / 24),
+      time_cos2 = cos(4 * pi * .data$time_decimal / 24)
     )
   # Optional sanity checks
   if (warn_range) {
