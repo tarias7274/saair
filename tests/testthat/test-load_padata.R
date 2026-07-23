@@ -1,5 +1,8 @@
 test_that("load works", {
-  skip_on_cran()
+  skip_if(
+    stringr::str_split_1(system.file(package = "saair"), "/")[3] %notin%
+      c("metro", "tarias7274")
+    )
   test_mem <- load_padata(
     data_dir = system.file(
       package = "saair",
