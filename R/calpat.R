@@ -2,8 +2,6 @@
 #'
 #' @param data A dataframe of PurpleAir data, such as output from
 #' `load_padata()`
-#' @param models Optional list of calibration models. If none are supplied, the
-#' package's internal calibrations are used
 #' @param calibration A character that best describes the deployment conditions.
 #' All sensors in `data` dataframe should have the same condition
 #'   "sunlit": sensor is deployed outdoors and is largely sunlit during the day
@@ -11,6 +9,8 @@
 #'   "indoor": sensor is deployed indoors
 #'   "shell" (unimplemented): sensor is contained in a 3D-printed shell
 #'   deployed at a Via bus stop
+#' @param custom_models Optional list of calibration models. If none are
+#' supplied, the package's internal calibrations are used
 #' @param temperature_col A character specifying the name of the Fahrenheit data
 #' column if it's not "T_air"
 #' @param rh_col A character specifying the name of the 0-100% relative humidity
@@ -61,8 +61,8 @@
 #' }
 calpat <- function(
     data,
-    models = models,
     calibration = c("sunlit", "shaded", "indoor", "shell"),
+    custom_models = NULL,
     temperature_col = "T_air",
     rh_col = "RH",
     time_col = "Timestamp_Local",
@@ -114,7 +114,9 @@ calpat <- function(
   #   )
   # }
   # Pull appropriate model for based on choice argument
-  model <- models[[calibration]]
+  if (is.null(custom_models)) {
+    model <- models[[calibration]]
+  }
   # Calculate Celsius temperatures and dupe rh column for calibration use
   data <- data |>
     mutate(

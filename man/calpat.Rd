@@ -6,8 +6,8 @@
 \usage{
 calpat(
   data,
-  models = models,
   calibration = c("sunlit", "shaded", "indoor", "shell"),
+  custom_models = NULL,
   temperature_col = "T_air",
   rh_col = "RH",
   time_col = "Timestamp_Local",
@@ -22,9 +22,6 @@ calpat(
 \item{data}{A dataframe of PurpleAir data, such as output from
 \code{load_padata()}}
 
-\item{models}{Optional list of calibration models. If none are supplied, the
-package's internal calibrations are used}
-
 \item{calibration}{A character that best describes the deployment conditions.
 All sensors in \code{data} dataframe should have the same condition
 "sunlit": sensor is deployed outdoors and is largely sunlit during the day
@@ -32,6 +29,9 @@ All sensors in \code{data} dataframe should have the same condition
 "indoor": sensor is deployed indoors
 "shell" (unimplemented): sensor is contained in a 3D-printed shell
 deployed at a Via bus stop}
+
+\item{custom_models}{Optional list of calibration models. If none are
+supplied, the package's internal calibrations are used}
 
 \item{temperature_col}{A character specifying the name of the Fahrenheit data
 column if it's not "T_air"}
