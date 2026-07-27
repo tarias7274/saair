@@ -130,7 +130,7 @@ calpat <- function(
     # Timestamp_Local has the right clock time but wrong timezone label
     data <- data |>
       mutate(
-        PA_time_local = as_datetime(.data[[time_col]], tzone = timezone) |>
+        PA_time_local = as_datetime(.data[[time_col]], tz = timezone) |>
           suppressWarnings(),
         # Convert that corrected local time to UTC for matching
         PA_time_UTC = lubridate::with_tz(.data$PA_time_local, tzone = "UTC")
