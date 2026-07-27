@@ -6,7 +6,7 @@
 \usage{
 calpat(
   data,
-  models = NULL,
+  models = models,
   calibration = c("sunlit", "shaded", "indoor", "shell"),
   temperature_col = "T_air",
   rh_col = "RH",
@@ -22,8 +22,8 @@ calpat(
 \item{data}{A dataframe of PurpleAir data, such as output from
 \code{load_padata()}}
 
-\item{models}{Optional list of calibration models. If \code{NULL} the package's
-internal calibrations are used}
+\item{models}{Optional list of calibration models. If none are supplied, the
+package's internal calibrations are used}
 
 \item{calibration}{A character that best describes the deployment conditions.
 All sensors in \code{data} dataframe should have the same condition

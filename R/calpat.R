@@ -2,8 +2,8 @@
 #'
 #' @param data A dataframe of PurpleAir data, such as output from
 #' `load_padata()`
-#' @param models Optional list of calibration models. If `NULL` the package's
-#' internal calibrations are used
+#' @param models Optional list of calibration models. If none are supplied, the
+#' package's internal calibrations are used
 #' @param calibration A character that best describes the deployment conditions.
 #' All sensors in `data` dataframe should have the same condition
 #'   "sunlit": sensor is deployed outdoors and is largely sunlit during the day
@@ -61,7 +61,7 @@
 #' }
 calpat <- function(
     data,
-    models = NULL,
+    models = models,
     calibration = c("sunlit", "shaded", "indoor", "shell"),
     temperature_col = "T_air",
     rh_col = "RH",
@@ -74,11 +74,6 @@ calpat <- function(
     ) {
   # Finishes partial arg matches, errors if none found or ambiguous
   calibration <- match.arg(calibration)
-  # Load package model if none specified
-  if (is.null(models)) {
-    system.file("..", "R", "sysdata.rda", package = "saair") |>
-      load()
-    }
   # Check for missing package installs
   # required_pkgs <- c("dplyr", "lubridate", "stats")
   # missing_pkgs <- required_pkgs[
