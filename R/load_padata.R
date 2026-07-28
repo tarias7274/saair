@@ -1,11 +1,11 @@
 #' Load saved PurpleAir data
 #'
-#' Loads raw purpleair(PA) sensor data based on the union of input sensor
+#' Loads purpleair(PA) sensor data based on the union of input sensor
 #' indexes, names, and project. Stitches files into dataframe for analysis or
 #' output.
 #'
-#' @param data_dir A character path from pc root to directory containing pa data
-#' folders and `ListOfLocations_Clean.csv` sheet. The values in the
+#' @param data_dir A character path from pc root to directory containing pa
+#' data folders and `ListOfLocations_Clean.csv` sheet. The values in the
 #' `sensor_index`, `Name`, and `Project` columns are referenced in this
 #' function's matching arguments
 #' @param load_interval A lubridate interval that loads any data files which
@@ -22,6 +22,15 @@
 #' this to `TRUE`
 #' @param verbose A boolean which disables(default) or enables cli progress
 #' bar updating on loading progress
+#' @param level A character which specifies the level of data to be loaded
+#'   "0": Raw data
+#'   "1": Quality-assured data
+#'   "2": Analysis-ready data
+#' @param letter_mod An optional character that will be appended to the level
+#' to specify an alternate directory. e.g. "B" -> "2B_ANALYSIS"
+#' @param data_suffix An optional character that will be used instead of the
+#' default for a certain level file suffix. Defaults for 0, 1, and 2 levels are
+#' "RAW", "VAL", and "1HR", respectively
 #'
 #' @returns A dataframe containing all pa data matching selection criteria
 #' @export
@@ -32,7 +41,8 @@
 #' }
 load_padata <- function(
   data_dir, load_interval, indexes = NULL, names = NULL, projects = NULL,
-  all_sensors = FALSE, verbose = FALSE
+  all_sensors = FALSE, verbose = FALSE, level = "2",
+  letter_mod = "", data_suffix = NULL
 ) {
   bug_bool <- FALSE
   # Make sure parameter classes are correct
@@ -177,11 +187,23 @@ load_padata <- function(
     stop()
   }
   # Filtering for time and sensor ---------------------------------------------
-  # Get folders that are in chosen data directory
-  existing_folders <- list.files(data_dir) |>
-    grep(pattern = "_RAW$", value = TRUE) |>
-    data.frame() |>
-    setNames("folder")
+  data_level <- dplyr::case_when(
+    level == 0 ~ "0%s_RAW",
+    level == 1 ~ "1%s_VALIDATED",
+    level == 2 ~ "2%s_ANALYSIS"
+    ) |> sprintf(letter_mod)
+  folder_suffix <- dplyr::case_when(
+    level == 0 ~ "RAW",
+    level == 1 ~ "VAL",
+    level == 2 ~ "ANA"
+  )
+  if (is.null(data_suffix)) {
+    data_suffix <- dplyr::case_when(
+      level == 0 ~ "RAW",
+      level == 1 ~ "VAL",
+      level == 2 ~ "1HR"
+    )
+  }
   # Reference against desired folder sequence
   folder_sequence <- coerce_date_sequence(
     lubridate::int_start(load_interval), lubridate::int_end(load_interval),
@@ -196,7 +218,7 @@ load_padata <- function(
       utils::tail(folder_sequence, -1) |>
         stringr::str_remove_all("-") |>
         str_sub(end = 8),
-      "RAW",
+      folder_suffix,
       sep = "_"
     ),
     folder_interval = interval(
@@ -204,11 +226,19 @@ load_padata <- function(
       end = utils::tail(folder_sequence, -1)
     )
   )
-  # Get subset of folders that contain data overlapping with
-  # defined time period
-  folder_matches <- existing_folders |>
-    filter(.data$folder %in% folder_sequence$folder_name) |>
-    pull(.data$folder)
+  # Get folders that are in chosen data directory
+  data_dir_test <- paste(data_dir, data_level, "PurpleAir", sep = "/")
+  data_dir <- if_else(
+    file.exists(data_dir_test),
+    data_dir_test,
+    paste(data_dir, data_level, sep = "/")
+    )
+  rm(data_dir_test)
+  existing_folders <- data_dir |>
+    list.files(pattern = paste0(folder_suffix, "$"))
+  folder_matches <- folder_sequence |>
+    filter(.data$folder_name %in% existing_folders) |>
+    pull("folder_name")
   # Output feedback if function is verbose
   if (verbose) {
     sprintf(
@@ -241,8 +271,8 @@ load_padata <- function(
   for (folder_match in folder_matches) {
     # Get file names that
     data_files <- paste(data_dir, folder_match, sep = "/") |>
-      list.files() |>
-      grep(pattern = ".csv", value = TRUE) |>
+      list.files(pattern = paste0(data_suffix, "[.]csv$"))
+    data_files <- data_files |>
       grep(pattern = paste(indexes, collapse = "|"), value = TRUE)
     found_sensors <- data_files |>
       str_sub(start = 7, end = 12) |>
@@ -290,7 +320,9 @@ load_padata <- function(
             .data$Timestamp_Local
           )
           # Ignore duplicate rows from incorrect past treatment of datetimes
-        ) |> dplyr::distinct()
+        ) |>
+        suppressMessages() |>
+        dplyr::distinct()
       data_out <- data_out |>
         full_join(
           data_append,

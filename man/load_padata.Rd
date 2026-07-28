@@ -11,12 +11,15 @@ load_padata(
   names = NULL,
   projects = NULL,
   all_sensors = FALSE,
-  verbose = FALSE
+  verbose = FALSE,
+  level = "2",
+  letter_mod = "",
+  data_suffix = NULL
 )
 }
 \arguments{
-\item{data_dir}{A character path from pc root to directory containing pa data
-folders and \code{ListOfLocations_Clean.csv} sheet. The values in the
+\item{data_dir}{A character path from pc root to directory containing pa
+data folders and \code{ListOfLocations_Clean.csv} sheet. The values in the
 \code{sensor_index}, \code{Name}, and \code{Project} columns are referenced in this
 function's matching arguments}
 
@@ -39,12 +42,24 @@ this to \code{TRUE}}
 
 \item{verbose}{A boolean which disables(default) or enables cli progress
 bar updating on loading progress}
+
+\item{level}{A character which specifies the level of data to be loaded
+"0": Raw data
+"1": Quality-assured data
+"2": Analysis-ready data}
+
+\item{letter_mod}{An optional character that will be appended to the level
+to specify an alternate directory. e.g. "B" -> "2B_ANALYSIS"}
+
+\item{data_suffix}{An optional character that will be used instead of the
+default for a certain level file suffix. Defaults for 0, 1, and 2 levels are
+"RAW", "VAL", and "1HR", respectively}
 }
 \value{
 A dataframe containing all pa data matching selection criteria
 }
 \description{
-Loads raw purpleair(PA) sensor data based on the union of input sensor
+Loads purpleair(PA) sensor data based on the union of input sensor
 indexes, names, and project. Stitches files into dataframe for analysis or
 output.
 }

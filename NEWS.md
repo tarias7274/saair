@@ -26,6 +26,8 @@ behavior when using a small date difference to create an initial interval
 * Added ability to opt out of `load_padata()` verbosity by default
 * Added `calpat()` function to calibrate PurpleAir temperature data
 * Added `base10to2()` and `base2to10()` functions for efficient flag handling
+* Added ability to load any level of data with `load_padata()` including data
+in alternative folders and with non-standard file suffixes
 
 ## Bug Fixes
 
