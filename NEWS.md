@@ -1,8 +1,12 @@
 # saair (development version)
 
+# saair 1.0.0.0
+
 ## Milestones
 
-* Initial CRAN submission.
+* Entered 1.0
+
+# saair 0.0.0.9000
 
 ## New Features
 

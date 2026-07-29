@@ -19,5 +19,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Tristan Arias \email{tristan.arias@utsa.edu} (\href{https://orcid.org/0009-0002-3329-9216}{ORCID}) [copyright holder]
 
+Authors:
+\itemize{
+  \item Kristen Brown \email{kristen.brown2@utsa.edu} (\href{https://orcid.org/0000-0002-0201-0558}{ORCID}) [copyright holder]
+}
+
 }
 \keyword{internal}
