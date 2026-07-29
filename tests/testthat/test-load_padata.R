@@ -1,7 +1,7 @@
 test_that("load works", {
   skip_if(
     stringr::str_split_1(system.file(package = "saair"), "/")[3] %notin%
-      c("metro", "tarias7274")
+      c("metro", "Tarias", "tarias7274")
     )
   test_mem <- load_padata(
     data_dir = system.file(
@@ -13,7 +13,7 @@ test_that("load works", {
       as.Date("2026-06-16") |> force_tz("America/Chicago")
     ),
     indexes = 151676,
-    level = "0"
+    level = 0
   )
   expected_output <- readRDS(test_path("fixtures", "load_padata_test_data.rds"))
   expect_equal(test_mem, expected_output, ignore_attr = TRUE)

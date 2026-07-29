@@ -11,57 +11,57 @@ load_padata(
   names = NULL,
   projects = NULL,
   all_sensors = FALSE,
-  verbose = FALSE,
-  level = "2",
-  letter_mod = "",
-  data_suffix = NULL
+  level = c("0", "1", "2"),
+  letter_mod = "default",
+  data_suffix = "default",
+  verbose = FALSE
 )
 }
 \arguments{
-\item{data_dir}{A character path from pc root to directory containing pa
-data folders and \code{ListOfLocations_Clean.csv} sheet. The values in the
+\item{data_dir}{A \code{character} path from pc root to directory containing pa
+data folders and \code{PA_Metadata.csv} sheet. The values in the metadata
 \code{sensor_index}, \code{Name}, and \code{Project} columns are referenced in this
 function's matching arguments}
 
-\item{load_interval}{A lubridate interval that loads any data files which
-have intervals which overlap with it}
+\item{load_interval}{A lubridate date \code{\link[lubridate:interval]{lubridate::interval()}} that loads any
+data files that fall within it}
 
-\item{indexes}{A vector of character or numeric purpleair data indexes. Valid
-indexes are always six digits long, but may include a seventh some time in
-the future}
+\item{indexes}{A \code{vector} of \code{character} or \code{numeric} PA data indexes. Valid
+indexes are always six digits long, but may include a seventh digit some time
+in the future}
 
-\item{names}{A vector of character purpleair sensor names. This argument and
+\item{names}{A \code{vector} of \code{character} PA sensor names. This argument and
 \code{projects} accept partial, case-insensitive matching}
 
-\item{projects}{A vector of character pa projects. This argument and
+\item{projects}{A \code{vector} of \code{character} PA projects. This argument and
 \code{names} accept partial, case-insensitive matching}
 
-\item{all_sensors}{A boolean which confirms no filtering. If data from all
-sensors is desired, input no values for indexes/names/projects and set
-this to \code{TRUE}}
+\item{all_sensors}{Default: \code{FALSE}. An optional \code{boolean} which confirms no
+filtering. If data from all sensors is desired, input no values for
+indexes/names/projects and set this to \code{TRUE}}
 
-\item{verbose}{A boolean which disables(default) or enables cli progress
-bar updating on loading progress}
+\item{level}{Default: \code{2}. An optional \code{integer} or \code{character} which
+specifies the level of data to be loaded. 0: Raw data. 1: Quality-assured
+data. 2: Analysis-ready data}
 
-\item{level}{A character which specifies the level of data to be loaded
-"0": Raw data
-"1": Quality-assured data
-"2": Analysis-ready data}
-
-\item{letter_mod}{An optional character that will be appended to the level
+\item{letter_mod}{An optional \code{character} that will be appended to the level
 to specify an alternate directory. e.g. "B" -> "2B_ANALYSIS"}
 
-\item{data_suffix}{An optional character that will be used instead of the
+\item{data_suffix}{An optional \code{character} that will be used instead of the
 default for a certain level file suffix. Defaults for 0, 1, and 2 levels are
 "RAW", "VAL", and "1HR", respectively}
+
+\item{verbose}{Default: \code{FALSE}. An optional \code{boolean} which disables or
+enables cli progress bar updating on loading progress. Function will still
+give parameter feedback if incorrect variables are supplied}
 }
 \value{
-A dataframe containing all pa data matching selection criteria
+A \code{dataframe} containing all pa data matching selection criteria
 }
 \description{
-Loads purpleair(PA) sensor data based on the union of input sensor
-indexes, names, and project. Stitches files into dataframe for analysis or
-output.
+Loads PurpleAir(PA) sensor data based on the union of input sensor
+indexes, names, and projects. Stitches files into dataframe for analysis or
+data sharing.
 }
 \examples{
 \dontrun{

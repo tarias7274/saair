@@ -1,38 +1,40 @@
 #' Load saved PurpleAir data
 #'
-#' Loads purpleair(PA) sensor data based on the union of input sensor
-#' indexes, names, and project. Stitches files into dataframe for analysis or
-#' output.
+#' Loads PurpleAir(PA) sensor data based on the union of input sensor
+#' indexes, names, and projects. Stitches files into dataframe for analysis or
+#' data sharing.
 #'
-#' @param data_dir A character path from pc root to directory containing pa
-#' data folders and `ListOfLocations_Clean.csv` sheet. The values in the
+#' @param data_dir A `character` path from pc root to directory containing pa
+#' data folders and `PA_Metadata.csv` sheet. The values in the metadata
 #' `sensor_index`, `Name`, and `Project` columns are referenced in this
 #' function's matching arguments
-#' @param load_interval A lubridate interval that loads any data files which
-#' have intervals which overlap with it
-#' @param indexes A vector of character or numeric purpleair data indexes. Valid
-#' indexes are always six digits long, but may include a seventh some time in
-#' the future
-#' @param names A vector of character purpleair sensor names. This argument and
+#'
+#' @param load_interval A lubridate date [lubridate::interval()] that loads any
+#' data files that fall within it
+#' @param indexes A `vector` of `character` or `numeric` PA data indexes. Valid
+#' indexes are always six digits long, but may include a seventh digit some time
+#' in the future
+#' @param names A `vector` of `character` PA sensor names. This argument and
 #' `projects` accept partial, case-insensitive matching
-#' @param projects A vector of character pa projects. This argument and
+#' @param projects A `vector` of `character` PA projects. This argument and
 #' `names` accept partial, case-insensitive matching
-#' @param all_sensors A boolean which confirms no filtering. If data from all
-#' sensors is desired, input no values for indexes/names/projects and set
-#' this to `TRUE`
-#' @param verbose A boolean which disables(default) or enables cli progress
-#' bar updating on loading progress
-#' @param level A character which specifies the level of data to be loaded
-#'   "0": Raw data
-#'   "1": Quality-assured data
-#'   "2": Analysis-ready data
-#' @param letter_mod An optional character that will be appended to the level
+#' @param all_sensors Default: `FALSE`. An optional `boolean` which confirms no
+#' filtering. If data from all sensors is desired, input no values for
+#' indexes/names/projects and set this to `TRUE`
+#'
+#' @param level Default: `2`. An optional `integer` or `character` which
+#' specifies the level of data to be loaded. 0: Raw data. 1: Quality-assured
+#' data. 2: Analysis-ready data
+#' @param letter_mod An optional `character` that will be appended to the level
 #' to specify an alternate directory. e.g. "B" -> "2B_ANALYSIS"
-#' @param data_suffix An optional character that will be used instead of the
+#' @param data_suffix An optional `character` that will be used instead of the
 #' default for a certain level file suffix. Defaults for 0, 1, and 2 levels are
 #' "RAW", "VAL", and "1HR", respectively
+#' @param verbose Default: `FALSE`. An optional `boolean` which disables or
+#' enables cli progress bar updating on loading progress. Function will still
+#' give parameter feedback if incorrect variables are supplied
 #'
-#' @returns A dataframe containing all pa data matching selection criteria
+#' @returns A `dataframe` containing all pa data matching selection criteria
 #' @export
 #'
 #' @examples
@@ -40,9 +42,10 @@
 #' load_padata()
 #' }
 load_padata <- function(
-  data_dir, load_interval, indexes = NULL, names = NULL, projects = NULL,
-  all_sensors = FALSE, verbose = FALSE, level = "2",
-  letter_mod = "", data_suffix = NULL
+  data_dir, load_interval,
+  indexes = NULL, names = NULL, projects = NULL, all_sensors = FALSE,
+  level = c("0", "1", "2"), letter_mod = "default", data_suffix = "default",
+  verbose = FALSE
 ) {
   bug_bool <- FALSE
   # Make sure parameter classes are correct
@@ -119,9 +122,9 @@ load_padata <- function(
   }
   # Break function if any bugs detected
   if (bug_bool == TRUE) stop()
-  # Get locations_info for getting indexes from names or projects
-  locations_info <- data_dir |>
-    paste("ListOfLocations_Clean.csv", sep = "/") |>
+  # Get pa_metadata for getting indexes from names or projects
+  pa_metadata <- data_dir |>
+    paste("PA_Metadata.csv", sep = "/") |>
     read_csv(
       col_types = readr::cols(
         .default = "?", sensor_index = "i", Name = "c", read_key = "c",
@@ -134,13 +137,13 @@ load_padata <- function(
     )
   # Override/Skip specific selections if all_sensors set to TRUE
   if (all_sensors == TRUE) {
-    indexes <- locations_info |>
+    indexes <- pa_metadata |>
       filter(!is.na(.data$sensor_index)) |>
       pull("sensor_index")
   } else {
     # Convert names to indexes
     if (!is.null(names)) {
-      name_indexes <- locations_info |>
+      name_indexes <- pa_metadata |>
         filter(
           grepl(
             pattern = toupper(paste(names, collapse = "|")),
@@ -161,7 +164,7 @@ load_padata <- function(
     }
     # Convert project to indexes
     if (!is.null(projects)) {
-      project_indexes <- locations_info |>
+      project_indexes <- pa_metadata |>
         filter(
           grepl(
             pattern = toupper(paste(projects, collapse = "|")),
@@ -187,6 +190,18 @@ load_padata <- function(
     stop()
   }
   # Filtering for time and sensor ---------------------------------------------
+  # Coerce level parameter for compatibility
+  level <- as.character(level)
+  if (length(level) == 3) {
+    level <- 2
+  } else {
+    level <- match.arg(level)
+  }
+  level <- as.numeric(level)
+  # Set level modifier letter
+  if (letter_mod == "default") {
+    letter_mod <- if_else(level == 2, "B", "")
+  }
   data_level <- dplyr::case_when(
     level == 0 ~ "0%s_RAW",
     level == 1 ~ "1%s_VALIDATED",
@@ -197,7 +212,7 @@ load_padata <- function(
     level == 1 ~ "VAL",
     level == 2 ~ "ANA"
   )
-  if (is.null(data_suffix)) {
+  if (data_suffix == "default") {
     data_suffix <- dplyr::case_when(
       level == 0 ~ "RAW",
       level == 1 ~ "VAL",
@@ -258,16 +273,56 @@ load_padata <- function(
   }
   # Actually pull the data ----------------------------------------------------
   # Create empty data to append to
-  data_out <- data.frame(
-    sensor_index = integer(),
-    Timestamp_Local = character(),
-    RSSI = integer(),
-    RH = integer(),
-    T_air = integer(),
-    Abs_P = double(),
-    PM2.5_A = double(),
-    PM2.5_B = double()
-  )
+  if (level == 0) {
+    # Raw data case
+    data_out <- data.frame(
+      sensor_index = integer(),
+      Timestamp_Local = character(),
+      RSSI = integer(),
+      RH = integer(),
+      T_air = integer(),
+      Abs_P = double(),
+      PM2.5_A = double(),
+      PM2.5_B = double()
+    )
+  } else if (level == 1) {
+    # Validated data case
+    data_out <- data.frame(
+      sensor_index = integer(),
+      Timestamp_Local = character(),
+      RH = integer(),
+      T_air = integer(),
+      Abs_P = double(),
+      PM2.5_A = double(),
+      PM2.5_B = double(),
+      PM2.5 = double()
+    )
+    # Flagged context case
+    if (data_suffix == "FLAG") {
+      data_out <- data.frame(
+        sensor_index = integer(),
+        Timestamp_Local = character(),
+        RH = integer(),
+        T_air = integer(),
+        Abs_P = double(),
+        PM2.5_A = double(),
+        PM2.5_B = double(),
+        EC_TPH = integer(),
+        EC_PM = integer()
+      )
+    }
+  } else {
+    # Analysis case
+    data_out <- data.frame(
+      sensor_index = integer(),
+      Timestamp_Local = character(),
+      Temperature = double(),
+      Pressure = double(),
+      Humidity = double(),
+      HeatIndex = double(),
+      PM2.5 = double()
+    )
+  }
   for (folder_match in folder_matches) {
     # Get file names that
     data_files <- paste(data_dir, folder_match, sep = "/") |>
@@ -323,6 +378,18 @@ load_padata <- function(
         ) |>
         suppressMessages() |>
         dplyr::distinct()
+      # Limit analysis significant figures to real precision
+      if (level == 2) {
+        data_append <- data_append |>
+          mutate(
+            dplyr::across(
+              dplyr::any_of(c(
+                "Temperature", "Pressure", "Humidity", "HeatIndex", "PM2.5"
+              )),
+              function (x) signif(x, 3)
+            )
+          )
+        }
       data_out <- data_out |>
         full_join(
           data_append,
