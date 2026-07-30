@@ -18,7 +18,7 @@ A vector same length as x
 }
 \description{
 Performs the reverse of the \%in\% operator, which is a binary operator of the
-\code{\link[=match]{match()}} function, returning \code{TRUE} if a match is not found
+\code{\link[base:match]{base::match()}} function, returning \code{TRUE} if a match is not found
 }
 \examples{
 1:10 \%notin\% c(1, 3, 5, 9)
