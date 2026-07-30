@@ -1,4 +1,10 @@
-# saair (development version)
+# saair 1.0.1
+
+## Changelog
+
+* Minor documentation edit to `%notin%`
+* Fixed `coerce_date_sequence()` test data types
+* Added dynamic column type expectation to `load_padata()`
 
 # saair 1.0.0.0
 
