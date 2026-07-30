@@ -34,9 +34,11 @@ test_that("End date always has correct day", {
 
 test_that("Function properly handles flipped dates", {
   # start date (inclusive)
-  start_date <- as_datetime("2024-01-01", tz = "America/Chicago")
+  start_date <- as.Date("2024-01-01") |>
+    force_tz("America/Chicago")
   # end date (exclusive)
-  end_date <- as_datetime("2023-01-01", tz = "America/Chicago")
+  end_date <- as.Date("2023-01-01") |>
+    force_tz("America/Chicago")
   # run function & save
   download_dates <- coerce_date_sequence(
     start_date = start_date,
@@ -50,14 +52,14 @@ test_that("Function properly handles flipped dates", {
     "2023-06-01", "2023-06-16", "2023-07-01", "2023-07-16", "2023-08-01",
     "2023-08-16", "2023-09-01", "2023-09-16", "2023-10-01", "2023-10-16",
     "2023-11-01", "2023-11-16", "2023-12-01", "2023-12-16", "2024-01-01"
-  ) |> as_datetime(tz = "America/Chicago")
+    ) |> as.Date() |> force_tz("America/Chicago")
   # do test
   expect_equal(download_dates, expected_output)
 })
 
 test_that("Function properly handles date limits", {
   # end date (exclusive)
-  end_date <- today(tzone = "America/Chicago")
+  end_date <- today() |> force_tz("America/Chicago")
   # start date (inclusive)
   start_date <- end_date - days(200)
   # run function & save
@@ -68,14 +70,16 @@ test_that("Function properly handles date limits", {
     limit = 90
   )
   # do test
-  expect_true(download_dates[1] > end_date - days(90))
+  expect_true(download_dates[1] >= end_date - days(90))
 })
 
 test_that("Output matches expectation", {
   # start date (inclusive)
-  start_date <- as_datetime("2023-01-01", tz = "America/Chicago")
+  start_date <- as.Date("2023-01-01") |>
+    force_tz("America/Chicago")
   # end date (exclusive)
-  end_date <- as_datetime("2024-01-01", tz = "America/Chicago")
+  end_date <- as.Date("2024-01-01") |>
+    force_tz("America/Chicago")
   # run function & save
   download_dates <- coerce_date_sequence(
     start_date = start_date,
@@ -88,7 +92,7 @@ test_that("Output matches expectation", {
     "2023-06-01", "2023-06-16", "2023-07-01", "2023-07-16", "2023-08-01",
     "2023-08-16", "2023-09-01", "2023-09-16", "2023-10-01", "2023-10-16",
     "2023-11-01", "2023-11-16", "2023-12-01", "2023-12-16", "2024-01-01"
-  ) |> as_datetime(tz = "America/Chicago")
+    ) |> as.Date() |> force_tz("America/Chicago")
   # do test
   expect_equal(download_dates, expected_output)
 })

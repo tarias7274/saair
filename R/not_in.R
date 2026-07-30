@@ -1,7 +1,7 @@
 #' Find if an element in Not In something
 #'
 #' Performs the reverse of the %in% operator, which is a binary operator of the
-#' [match()] function, returning `TRUE` if a match is not found
+#' [base::match()] function, returning `TRUE` if a match is not found
 #'
 #'
 #' @param x vector or NULL: the values to be matched. Long vectors are

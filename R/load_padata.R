@@ -272,56 +272,77 @@ load_padata <- function(
     )
   }
   # Actually pull the data ----------------------------------------------------
+  data_out <- data.frame(
+    sensor_index = integer(),
+    Timestamp_Local = character()
+  )
+  col_types <- readr::cols(
+    sensor_index = "i",
+    Timestamp_Local = "c"
+  )
   # Create empty data to append to
-  if (level == 0) {
-    # Raw data case
+  if (level == 0 | level == 1) {
+    # Raw & Val data case
     data_out <- data.frame(
-      sensor_index = integer(),
-      Timestamp_Local = character(),
+      data_out,
       RSSI = integer(),
       RH = integer(),
       T_air = integer(),
       Abs_P = double(),
       PM2.5_A = double(),
       PM2.5_B = double()
-    )
-  } else if (level == 1) {
-    # Validated data case
-    data_out <- data.frame(
-      sensor_index = integer(),
-      Timestamp_Local = character(),
-      RH = integer(),
-      T_air = integer(),
-      Abs_P = double(),
-      PM2.5_A = double(),
-      PM2.5_B = double(),
-      PM2.5 = double()
-    )
-    # Flagged context case
-    if (data_suffix == "FLAG") {
-      data_out <- data.frame(
-        sensor_index = integer(),
-        Timestamp_Local = character(),
-        RH = integer(),
-        T_air = integer(),
-        Abs_P = double(),
-        PM2.5_A = double(),
-        PM2.5_B = double(),
-        EC_TPH = integer(),
-        EC_PM = integer()
       )
+    col_types$cols <- c(
+      col_types$cols,
+      readr::cols(
+        RSSI = "i",
+        RH = "i",
+        T_air = "i",
+        Abs_P = "d",
+        PM2.5_A = "d",
+        PM2.5_B = "d"
+      )$cols
+    )
+    if (level == 1) {
+      # Validated data case
+      data_out <- data.frame(data_out, PM2.5 = double())
+      col_types$cols <- c(
+        col_types$cols,
+        readr::cols(PM2.5 = "d")$cols
+        )
+      if (data_suffix == "FLAG") {
+        # Flagged context case
+        data_out <- data.frame(
+          data_out,
+          EC_TPH = integer(),
+          EC_PM = integer()
+          )
+        col_types$cols <- c(
+          col_types$cols,
+          readr::cols(EC_TPH = "i", EC_PM = "i")$cols
+        )
+      }
     }
-  } else {
+  } else if (level == 2) {
     # Analysis case
     data_out <- data.frame(
-      sensor_index = integer(),
-      Timestamp_Local = character(),
+      data_out,
       Temperature = double(),
       Pressure = double(),
       Humidity = double(),
       HeatIndex = double(),
       PM2.5 = double()
     )
+    col_types$cols <- c(
+      col_types$cols,
+      readr::cols(
+        Temperature = "d",
+        Pressure = "d",
+        Humidity = "d",
+        HeatIndex = "d",
+        PM2.5 = "d"
+        )$cols
+      )
   }
   for (folder_match in folder_matches) {
     # Get file names that
@@ -347,13 +368,7 @@ load_padata <- function(
     }
     for (data_file in data_files) {
       data_append <- paste(data_dir, folder_match, data_file, sep = "/") |>
-        read_csv(
-          col_types = readr::cols(
-            .default = "?", sensor_index = "i", Timestamp_Local = "c",
-            RSSI = "i", RH = "i", T_air = "i",
-            Abs_P = "d", PM2.5_A = "d", PM2.5_B = "d"
-          )
-        )
+        read_csv(col_types = col_types)
       # Check for saved datetime format
       data_append <- data_append |>
         mutate(
