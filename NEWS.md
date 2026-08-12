@@ -1,3 +1,10 @@
+# saair 1.0.3
+
+## Changelog
+
+* Fixed missing `get_api_key()` return key case
+* Updated test output to be cleaner
+
 # saair 1.0.2
 
 ## Changelog
