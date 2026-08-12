@@ -7,7 +7,8 @@
 get_api_key()
 }
 \value{
-Value for SAAIR_KEY environment variable if it exists in the user's environment
+Value for SAAIR_KEY environment variable if it exists in the user's
+environment
 }
 \description{
 Get api key

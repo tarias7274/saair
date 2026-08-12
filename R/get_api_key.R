@@ -1,6 +1,7 @@
 #' Get api key
 #'
-#' @returns Value for SAAIR_KEY environment variable if it exists in the user's environment
+#' @returns Value for SAAIR_KEY environment variable if it exists in the user's
+#' environment
 #' @export
 #'
 #' @examples
@@ -13,7 +14,7 @@ get_api_key <- function() {
     return(testing_key())
   } else {
     paste0(
-      "No API key found, please supply with `api_key` argument or ",
+      "No API key found, please supply with `api_read_key` argument or ",
       "run `set_api_key()` to set with SAAIR_KEY env var"
     ) |> stop()
   }

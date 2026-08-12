@@ -1,19 +1,20 @@
 #' GET latest PurpleAir sensor data
 #'
-#' `get_sensor_data()` allows a user to easily GET the latest field data for a
-#' group of sensors by supplying a subset of a dataframe containing sensor
-#' identifying information. Uses the PurpleAir Get Sensor Data api request to
-#' pull data from PurpleAir
+#' `get_padata()` allows a user to easily GET the latest field data for a
+#' group of sensors by supplying sensor identifying information. Uses the
+#' PurpleAir Get Sensor Data api request to pull data from PurpleAir
 #'
-#' @param sensors_df A dataframe with the following columns
-#'   * sensor_index: chr or num pa sensor data indexes
-#'   * MAC_SN: chr mac ids for sensors which will be included in output
-#'   * Name: chr names for sensors which will be included in output
-#'   * read_key: chr sensor read keys necessary to GET private data
-#' @param fields A character vector of api fields to return; valid fields can
+#' @param sensors Either a `vector` or `dataframe` specifying sensors to GET
+#'   * vector: a `vector` of `numeric` sensor indexes
+#'   * dataframe: if any sensors are private, read keys will be needed to GET
+#'   their data. In this case, a dataframe with `numeric` sensor_index and
+#'   `character` read_key columns will be needed
+#' @param fields A `character vector` of api fields to return; valid fields can
 #' be found at https://api.purpleair.com/#api-sensors-get-sensor-data and
 #' https://community.purpleair.com/t/api-fields-descriptions/4652
-#' @param api_read_key A valid character PurpleAir api read key
+#' @param api_read_key A valid `character` PurpleAir api read key. The function
+#' will grab an existing read key if saved to your R environment with
+#' `set_api_key()`
 #'
 #' @returns A dataframe with field values for each supplied sensor
 #' @export
@@ -23,19 +24,19 @@
 #' \dontrun{
 #' sensors <- data.frame(
 #'   sensor_index = 122948,
-#'   MAC_SN = "00:00:00:00:00:00",
-#'   Name = "PurpleSensor-0089",
 #'   read_key = "28qhig4ghqh290qt"
 #' )
 #' fields_vector <- c("name", "uptime")
-#' api_read <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
-#' get_sensor_data(sensors, fields_vector, api_read)
+#' api_read_key <- "EHAIGEH1-18Y9-81H8-GGI9-HTQ238HQ9H8H"
+#' get_padata(sensors, fields_vector, api_read_key)
 #' }
-get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
+get_padata <- function(sensors, fields, api_read_key = get_api_key()) {
   # Run datatype checks -------------------------------------------------------
   bug_bool <- FALSE
-  if (!is.data.frame(sensors_df)) {
-    cli::cli_alert_danger("Incompatible type: sensors_df is not a dataframe")
+  if (!is.data.frame(sensors) & !is.vector(sensors)) {
+    cli::cli_alert_danger(
+      "Incompatible type: sensors is neither a vector nor a dataframe"
+      )
     bug_bool <- TRUE
   }
   if (!is.vector(fields)) {
@@ -50,26 +51,21 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     cli::cli_alert_danger("Incompatible type: api_read_key is not a character")
     bug_bool <- TRUE
   }
-  if (!all(c("sensor_index", "MAC_SN", "Name", "read_key") %in%
-           colnames(sensors_df))) {
-    sprintf(
-      "Missing \"%s\" from required columns",
-      c("sensor_index", "MAC_SN", "Name", "read_key")[
-        saair::`%notin%`(c("sensor_index", "MAC_SN", "Name", "read_key"),
-          colnames(sensors_df))]
-    ) |> cli::cli_alert_danger()
-    bug_bool <- TRUE
-  } else {
-    if (any(is.na(as.numeric(sensors_df$sensor_index)))) {
-      cli::cli_alert_danger(
+  # Convert sensor vector to dataframe for easier handling
+  if (is.vector(sensors)) {
+    sensors <- data.frame(sensor_index = sensors, read_key = NA)
+  }
+  # Check for numeric sensor indexes
+  if (any(is.na(as.numeric(sensors$sensor_index)))) {
+      cli_alert_danger(
         "Incompatible value: sensor indexes cannot be coerced to numeric"
       )
       bug_bool <- TRUE
-    }
   }
+  # Check if any bug flags were raised & stop() if so
   if (bug_bool == TRUE) stop()
   # Convert sensor index column to character for string insertion functions
-  sensors_df$sensor_index <- sensors_df$sensor_index |> as.character()
+  sensors <- mutate(sensors, sensor_index = as.character(.data$sensor_index))
   # Get point total before download
   org_start <- httr::GET(
     "https://api.purpleair.com/v1/organization",
@@ -78,42 +74,25 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
   # Start message
   sprintf(
     "Downloading Latest Data from %.0f PurpleAir Sensors",
-    nrow(sensors_df)
-  ) |> cli::cli_alert_info()
+    nrow(sensors)
+  ) |> cli_alert_info()
   # Initialize progress bar with first sensor index
-  sensor_id <- sensors_df$sensor_index[1]
-  sensor_name <- sensors_df$Name[1]
-  cli::cli_progress_bar(
-    total = nrow(sensors_df),
+  sensor_id <- sensors$sensor_index[1]
+  cli_progress_bar(
+    total = nrow(sensors),
     format = paste0(
-      "Sensor \"{sensor_name}\" SID{sensor_id} [{pb_current}/{pb_total}] ",
+      "Sensor SID{sensor_id} [{pb_current}/{pb_total}] ",
       "{pb_bar} {pb_percent} | ETA:{pb_eta}"
     )
   )
   # Create empty object to store returned data in
   pa_sensor_data <- c()
+  # Add name for feedback purposes
+  fields <- c(fields, "name") |> unique()
   # Begin loop through sensor dataframe data indexes
-  for (i in seq_len(nrow(sensors_df))) {
-    sensor_id <- sensors_df$sensor_index[i]
-    sensor_mac <- sensors_df$MAC_SN[i]
-    sensor_name <- sensors_df$Name[i]
-    sensor_key <- sensors_df$read_key[i]
-    # Check for missing sensor index for given mac
-    if (is.na(sensor_id)) {
-      cli::cli_alert_info(
-        sprintf(
-          paste(
-            "No data id for MAC: %s, \"%s\"",
-            "If sensor is installed, manually add sensor index",
-            sep = "\n"
-          ),
-          sensor_mac,
-          sensor_name
-        )
-      )
-      cli::cli_progress_update()
-      next
-    }
+  for (row_num in seq_len(nrow(sensors))) {
+    sensor_id <- sensors$sensor_index[row_num]
+    sensor_key <- sensors$read_key[row_num]
     # Check for missing read_key
     if (!is.na(sensor_key)) {
       data_request <- httr::GET(
@@ -133,9 +112,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
           ":sensor_index", sensor_id,
           "https://api.purpleair.com/v1/sensors/:sensor_index"
         ),
-        query = list(
-          fields = paste(fields, collapse = ",")
-        ),
+        query = list(fields = paste(fields, collapse = ",")),
         httr::add_headers("X-API-Key" = api_read_key)
       )
     }
@@ -151,7 +128,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
         if(!is.null(data$sensor$name)) {
           data$sensor$name
         } else {
-          NA_character_
+          "No Name"
         }
       ) |> cli::cli_alert_success()
     } else if (data_request$status_code != 200) {
@@ -166,14 +143,13 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
         data_request$status_code,
         data$error,
         data$description
-      ) |> cli::cli_alert_info()
-      cli::cli_progress_update()
+      ) |> cli_alert_info()
+      cli_progress_update()
       next
     }
     # Create dataframe from parse list
     data_df <- data.frame(data$sensor) |>
       mutate(
-        MAC_SN = sensor_mac,
         dplyr::across(
           tidyselect::matches("last|date"),
           ~ as_datetime(.x) |> lubridate::date()
@@ -183,15 +159,11 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     pa_sensor_data <- if (is.null(pa_sensor_data)) {
       data_df
     } else {
-      dplyr::full_join(
-        pa_sensor_data,
-        data_df,
-        by = names(pa_sensor_data)
-      )
+      full_join(pa_sensor_data, data_df, by = names(pa_sensor_data))
     }
     # Suspend execution for appropriate time to avoid exceeding
     # API request's rate limit
-    cli::cli_progress_update()
+    cli_progress_update()
     execution_time <- difftime(
       Sys.time(),
       benchmark_start,
@@ -210,7 +182,7 @@ get_sensor_data <- function(sensors_df, fields, api_read_key = get_api_key()) {
     httr::content(as = "parsed")
   # Output point usage report
   cat("\n\n\n")
-  cli::cli_alert_info(
+  cli_alert_info(
     sprintf(
       paste(
         "POINT CONSUMPTION REPORT",
