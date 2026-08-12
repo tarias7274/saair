@@ -1,5 +1,11 @@
 # saair 1.0.2
 
+## Changelog
+
+* Renamed `get_sensor_data()` to `get_padata()`
+* Updated `get_padata()` to be able to accept a vector of sensor indexes rather
+than expecting a specifically-formatted dataframe
+
 # saair 1.0.1
 
 ## Changelog
