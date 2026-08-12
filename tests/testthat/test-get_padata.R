@@ -11,7 +11,9 @@ test_that("Output matches expectation", {
     read_key = "95OQ853QATISF7V8"
     )
   # Run Function
-  test_mem <- get_padata(testing_data, fields = c("hardware", "date_created"))
+  test_mem <- get_padata(
+    testing_data, fields = c("hardware", "date_created")
+    ) |> suppressMessages()
   # Establish expected output
   expected_output <- data.frame(
     sensor_index = 151664,

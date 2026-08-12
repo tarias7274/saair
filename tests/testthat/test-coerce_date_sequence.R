@@ -12,7 +12,8 @@ test_that("Start date always has correct day", {
     rep(as.Date("2024-02-01"), 16)
   )
   # do test
-  expect_equal(sapply(test_dates, date_pull), expected_output)
+  expect_equal(sapply(test_dates, date_pull), expected_output) |>
+    suppressMessages()
 })
 
 test_that("End date always has correct day", {
@@ -29,7 +30,8 @@ test_that("End date always has correct day", {
     rep(as.Date("2024-02-01"), 1)
   )
   # do test
-  expect_equal(sapply(test_dates, date_push), expected_output)
+  expect_equal(sapply(test_dates, date_push), expected_output) |>
+    suppressMessages()
 })
 
 test_that("Function properly handles flipped dates", {
@@ -44,7 +46,7 @@ test_that("Function properly handles flipped dates", {
     start_date = start_date,
     end_date = end_date,
     time_zone = "America/Chicago"
-  )
+  ) |> suppressMessages()
   # do test
   expected_output <- c(
     "2023-01-01", "2023-01-16", "2023-02-01", "2023-02-16", "2023-03-01",
@@ -68,7 +70,7 @@ test_that("Function properly handles date limits", {
     end_date = end_date,
     time_zone = "America/Chicago",
     limit = 90
-  )
+  ) |> suppressMessages()
   # do test
   expect_true(download_dates[1] >= end_date - days(90))
 })

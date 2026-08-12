@@ -181,7 +181,6 @@ get_padata <- function(sensors, fields, api_read_key = get_api_key()) {
   ) |>
     httr::content(as = "parsed")
   # Output point usage report
-  cat("\n\n\n")
   cli_alert_info(
     sprintf(
       paste(
@@ -194,6 +193,5 @@ get_padata <- function(sensors, fields, api_read_key = get_api_key()) {
       org_start$remaining_points - org_end$remaining_points
     )
   )
-  cat("\n\n\n")
   return(pa_sensor_data)
 }
